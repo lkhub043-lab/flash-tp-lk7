@@ -3,7 +3,7 @@ local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 local Window = Rayfield:CreateWindow({
     Name = "LK7 HUB",
     LoadingTitle = "LK7 HUB",
-    LoadingSubtitle = "Flash TP 92% Edition",
+    LoadingSubtitle = "Flash TP 92% - Ajustado",
     ConfigurationSaving = {Enabled = false},
     KeySystem = false
 })
@@ -13,21 +13,16 @@ local MainTab = Window:CreateTab("Principal", 4483362458)
 local player = game.Players.LocalPlayer
 local flashTP92Enabled = false
 
--- Função de execução do Flash
-local function useFlash()
+-- Função que apenas usa o item, sem empurrar o boneco
+local function useFlashItem()
     local char = player.Character
     local hum = char and char:FindFirstChildOfClass("Humanoid")
-    local hrp = char and char:FindFirstChild("HumanoidRootPart")
     local tool = player.Backpack:FindFirstChild("Flash Teleport") or char:FindFirstChild("Flash Teleport")
     
-    if tool and hum and hrp then
+    if tool and hum then
         hum:EquipTool(tool)
-        task.wait(0.05)
-        tool:Activate()
-        
-        -- Bypass de CFrame para atravessar a parede (Igual ao vídeo)
-        local direction = hrp.CFrame.LookVector
-        hrp.CFrame = hrp.CFrame * CFrame.new(0, 0, -25) 
+        task.wait(0.05) -- Tempo apenas para o Roblox entender a troca
+        tool:Activate() -- Aciona o item (o item do jogo faz o teleporte)
     end
 end
 
@@ -48,15 +43,14 @@ MainTab:CreateButton({
     end
 })
 
--- GATILHO POR FIM DA BARRA DE PROGRESSO
--- Detecta quando o GUI de roubo ("Barra") é removido da sua tela
+-- NOVO GATILHO: Detecta apenas quando a barra é DESTRUÍDA (fim do roubo)
 player.PlayerGui.DescendantRemoving:Connect(function(descendant)
     if flashTP92Enabled then
-        -- Verificamos se o que sumiu foi a barra de roubo (comum em jogos de 'Steal')
-        -- Geralmente a barra tem nomes como 'Bar', 'Progress' ou 'MainBar'
-        if descendant.Name:lower():find("bar") or descendant.Name:lower():find("progress") then
-            task.wait(0.05) -- Pequeno delay para garantir que o roubo processou
-            useFlash()
+        -- Verificamos se o que sumiu foi especificamente a barra de progresso
+        if descendant.Name == "Bar" or descendant.Name == "ProgressBar" or descendant.Name == "Progress" then
+            -- Pequeno delay para garantir que o jogo contou o roubo antes de fugir
+            task.wait(0.1) 
+            useFlashItem()
         end
     end
 end)
