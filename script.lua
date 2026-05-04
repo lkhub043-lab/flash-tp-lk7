@@ -3,7 +3,7 @@ local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 local Window = Rayfield:CreateWindow({
     Name = "LK7 HUB",
     LoadingTitle = "LK7 HUB",
-    LoadingSubtitle = "Interface de Teleporte",
+    LoadingSubtitle = "Interface de Teleporte e Controle",
     ConfigurationSaving = {
         Enabled = true,
         FolderName = "LK7HubConfigs",
@@ -13,13 +13,11 @@ local Window = Rayfield:CreateWindow({
     KeySystem = false
 })
 
--- CRIANDO A ABA PRINCIPAL (Obrigatório para os botões aparecerem)
-local MainTab = Window:CreateTab("Principal", 4483362458) 
+local MainTab = Window:CreateTab("Principal", 4483362458)
 
--- Notificação de inicialização
 Rayfield:Notify({
     Title = "LK7 HUB",
-    Content = "Interface carregada com sucesso!",
+    Content = "Sistema carregado com sucesso!",
     Duration = 5,
     Image = 4483362458,
 })
@@ -29,12 +27,12 @@ local RunService = game:GetService("RunService")
 local player = Players.LocalPlayer
 local camera = workspace.CurrentCamera
 
--- Labels de Status (dentro da MainTab)
 local statusPing = MainTab:CreateLabel("Ping: --")
 local statusDelay = MainTab:CreateLabel("Delay: --")
 
 local autoPotionEnabled = false
 local speedBoostEnabled = false
+local laggerOnStealEnabled = false
 
 local function updateStatus()
     local ping = math.floor((player:GetNetworkPing() or 0) * 1000)
@@ -45,7 +43,6 @@ end
 
 RunService.RenderStepped:Connect(updateStatus)
 
--- Toggles (dentro da MainTab)
 MainTab:CreateToggle({
     Name = "Auto Potion",
     CurrentValue = false,
@@ -64,41 +61,68 @@ MainTab:CreateToggle({
     end
 })
 
--- Botões de Ação
+MainTab:CreateToggle({
+    Name = "Lagger on Steal",
+    CurrentValue = false,
+    Flag = "LaggerOnSteal",
+    Callback = function(value)
+        laggerOnStealEnabled = value
+    end
+})
+
+local function findToolByName(name)
+    local backpack = player:WaitForChild("Backpack")
+    local character = player.Character or player.CharacterAdded:Wait()
+    return backpack:FindFirstChild(name) or character:FindFirstChild(name)
+end
+
 MainTab:CreateButton({
     Name = "ALIGN CAMERA",
     Callback = function()
-        local char = player.Character
-        local hrp = char and char:FindFirstChild("HumanoidRootPart")
-        if hrp then
-            camera.CFrame = CFrame.new(hrp.Position + Vector3.new(0, 50, 0), hrp.Position)
-        end
+        local alvoPos = Vector3.new(-321.731, 39.651, 92.335)
+        camera.CFrame = CFrame.new(alvoPos + Vector3.new(0, 60, 0), alvoPos)
+        
+        Rayfield:Notify({
+            Title = "LK7 HUB",
+            Content = "Câmera alinhada ao alvo!",
+            Duration = 2
+        })
     end
 })
+
+local function executeFlashGrab()
+    local character = player.Character
+    if not character then return end
+    local humanoid = character:FindFirstChildOfClass("Humanoid")
+    local hrp = character:FindFirstChild("HumanoidRootPart")
+
+    local tool = findToolByName("Flash Teleport")
+    
+    if tool then
+        if tool.Parent ~= character then
+            humanoid:EquipTool(tool)
+        end
+        
+        task.wait(0.1)
+        pcall(function() tool:Activate() end)
+
+        if hrp then
+            hrp.CFrame = hrp.CFrame * CFrame.new(0, 0, -25)
+        end
+    else
+        Rayfield:Notify({
+            Title = "Aviso",
+            Content = "Item 'Flash Teleport' não encontrado!",
+            Duration = 3
+        })
+    end
+end
 
 MainTab:CreateButton({
     Name = "FLASH GRAB",
-    Callback = function()
-        local character = player.Character
-        local tool = player.Backpack:FindFirstChild("Flash Teleport") or character:FindFirstChild("Flash Teleport")
-        
-        if tool then
-            player.Character.Humanoid:EquipTool(tool)
-            task.wait(0.1)
-            tool:Activate()
-            
-            -- Lógica de TP Simples (CFrame)
-            local hrp = character:FindFirstChild("HumanoidRootPart")
-            if hrp then
-                hrp.CFrame = hrp.CFrame * CFrame.new(0, 0, -20) -- Teleporta 20 studs para frente
-            end
-        else
-            Rayfield:Notify({Title = "Erro", Content = "Flash Teleport não encontrado!", Duration = 3})
-        end
-    end
+    Callback = executeFlashGrab
 })
 
--- Seção de Suporte
 local SupportTab = Window:CreateTab("Suporte", 4483362458)
 
 SupportTab:CreateButton({
@@ -107,3 +131,13 @@ SupportTab:CreateButton({
         game:GetService("TeleportService"):Teleport(game.PlaceId, player)
     end
 })
+
+spawn(function()
+    while true do
+        task.wait(1)
+        if speedBoostEnabled and player.Character then
+            local hum = player.Character:FindFirstChildOfClass("Humanoid")
+            if hum then hum.WalkSpeed = 30 end
+        end
+    end
+end)
