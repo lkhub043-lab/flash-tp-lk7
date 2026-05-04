@@ -3,7 +3,7 @@ local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 local Window = Rayfield:CreateWindow({
     Name = "LK7 HUB",
     LoadingTitle = "LK7 HUB",
-    LoadingSubtitle = "Flash TP 92% - Ajustado",
+    LoadingSubtitle = "Flash TP 92% - Auto Exit",
     ConfigurationSaving = {Enabled = false},
     KeySystem = false
 })
@@ -13,16 +13,20 @@ local MainTab = Window:CreateTab("Principal", 4483362458)
 local player = game.Players.LocalPlayer
 local flashTP92Enabled = false
 
--- Função que apenas usa o item, sem empurrar o boneco
+-- Função para usar o Flash (focando na direção da câmera/personagem)
 local function useFlashItem()
     local char = player.Character
     local hum = char and char:FindFirstChildOfClass("Humanoid")
-    local tool = player.Backpack:FindFirstChild("Flash Teleport") or char:FindFirstChild("Flash Teleport")
+    local tool = player.Backpack:FindFirstChild("Flash Teleport") or (char and char:FindFirstChild("Flash Teleport"))
     
     if tool and hum then
         hum:EquipTool(tool)
-        task.wait(0.05) -- Tempo apenas para o Roblox entender a troca
-        tool:Activate() -- Aciona o item (o item do jogo faz o teleporte)
+        task.wait(0.01) -- Delay quase zero
+        tool:Activate()
+        
+        -- Se o item do jogo por algum motivo não te levar longe o suficiente, 
+        -- você pode descomentar a linha abaixo para garantir o pulo:
+        -- char.HumanoidRootPart.CFrame = char.HumanoidRootPart.CFrame * CFrame.new(0, 0, -10)
     end
 end
 
@@ -43,13 +47,11 @@ MainTab:CreateButton({
     end
 })
 
--- NOVO GATILHO: Detecta apenas quando a barra é DESTRUÍDA (fim do roubo)
+-- DETECTOR DE FIM DE ROUBO:
+-- Quando a barra de carregar (Progress) sumir, ele executa o Flash
 player.PlayerGui.DescendantRemoving:Connect(function(descendant)
     if flashTP92Enabled then
-        -- Verificamos se o que sumiu foi especificamente a barra de progresso
-        if descendant.Name == "Bar" or descendant.Name == "ProgressBar" or descendant.Name == "Progress" then
-            -- Pequeno delay para garantir que o jogo contou o roubo antes de fugir
-            task.wait(0.1) 
+        if descendant.Name:lower():find("bar") or descendant.Name:lower():find("progress") then
             useFlashItem()
         end
     end
