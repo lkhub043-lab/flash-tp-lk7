@@ -3,19 +3,19 @@ local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 local Window = Rayfield:CreateWindow({
     Name = "LK7 HUB",
     LoadingTitle = "LK7 HUB",
-    LoadingSubtitle = "Versão Completa - Fix",
+    LoadingSubtitle = "Versão Final - Tudo em Um",
     ConfigurationSaving = {Enabled = false},
     KeySystem = false
 })
 
-local MainTab = Window:CreateTab("Principal", 4483362458)
-local ConfigTab = Window:CreateTab("Configurações", 4483362458) -- Aba para Rejoin
+-- Tudo em uma aba só para não sumir nada
+local MainTab = Window:CreateTab("LK7 HUB", 4483362458)
 
 local player = game.Players.LocalPlayer
 local flashTPEnabled = false
 local triggerPercent = 91
 
--- === GUI DA BARRA DE PROGRESSO (VISUAL) ===
+-- === BARRA DE PROGRESSO VISUAL (A que você pediu na foto) ===
 local ScreenGui = Instance.new("ScreenGui")
 local BarBackground = Instance.new("Frame")
 local BarFill = Instance.new("Frame")
@@ -23,28 +23,27 @@ local UICorner = Instance.new("UICorner")
 local UICorner2 = Instance.new("UICorner")
 
 ScreenGui.Parent = player:WaitForChild("PlayerGui")
-ScreenGui.Name = "LK7_ProgressUI"
+ScreenGui.Name = "LK7_VisualBar"
 
 BarBackground.Name = "BarBackground"
 BarBackground.Parent = ScreenGui
 BarBackground.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-BarBackground.Position = UDim2.new(0.5, -100, 0.85, 0) 
+BarBackground.Position = UDim2.new(0.5, -100, 0.85, 0) -- Posição perto dos itens
 BarBackground.Size = UDim2.new(0, 200, 0, 15)
 BarBackground.Visible = false 
 
 UICorner.Parent = BarBackground
 BarFill.Name = "BarFill"
 BarFill.Parent = BarBackground
-BarFill.BackgroundColor3 = Color3.fromRGB(0, 255, 127)
+BarFill.BackgroundColor3 = Color3.fromRGB(0, 255, 127) -- Verde
 BarFill.Size = UDim2.new(0, 0, 1, 0)
 UICorner2.Parent = BarFill
 
--- === FUNÇÕES ===
-
+-- === FUNÇÃO DE TELEPORTE ===
 local function executeEscape()
     local char = player.Character
     local hum = char and char:FindFirstChildOfClass("Humanoid")
-    -- Nome exato corrigido: FLASH TELEPORTE
+    -- Nome do item que você corrigiu: FLASH TELEPORTE
     local tool = player.Backpack:FindFirstChild("FLASH TELEPORTE") or (char and char:FindFirstChild("FLASH TELEPORTE"))
     
     if tool and hum then
@@ -54,7 +53,7 @@ local function executeEscape()
     end
 end
 
--- === ABA PRINCIPAL ===
+-- === INTERFACE DO PAINEL ===
 
 MainTab:CreateToggle({
     Name = "FLASH TP: ON/OFF",
@@ -76,22 +75,21 @@ MainTab:CreateSlider({
     end
 })
 
+-- O BOTÃO ALIGN VOLTOU AQUI:
 MainTab:CreateButton({
-    Name = "ALIGN CAMERA",
+    Name = "ALIGN CAMERA (H: 91)",
     Callback = function()
-        -- Usando a altura exata 91 conforme solicitado
+        -- Usando as coordenadas exatas e a altura 91 que você especificou
         local alvoPos = Vector3.new(-321.731, 39.651, 92.335)
         local pontoDeFoco = alvoPos + Vector3.new(0, 91, -20) 
         local cameraPos = alvoPos + Vector3.new(0, 2, 10)
         workspace.CurrentCamera.CFrame = CFrame.new(cameraPos, pontoDeFoco)
         
-        Rayfield:Notify({Title = "LK7 HUB", Content = "Câmara Alinhada!", Duration = 2})
+        Rayfield:Notify({Title = "LK7 HUB", Content = "Câmera Alinhada na altura 91!", Duration = 2})
     end
 })
 
--- === ABA DE CONFIGURAÇÕES (REJOIN) ===
-
-ConfigTab:CreateButton({
+MainTab:CreateButton({
     Name = "REJOIN SERVER",
     Callback = function()
         local ts = game:GetService("TeleportService")
@@ -99,25 +97,27 @@ ConfigTab:CreateButton({
     end
 })
 
--- === LÓGICA DO TRIGGER E BARRA (FIX) ===
+-- === LÓGICA DE DETECÇÃO (TRIGGER E BARRA) ===
 task.spawn(function()
     while true do
         task.wait(0.05)
         local isStealing = false
         
         if flashTPEnabled then
-            -- Procura a barra de progresso do jogo para sincronizar
+            -- Procura a barra de porcentagem do jogo na tela
             for _, v in pairs(player.PlayerGui:GetDescendants()) do
                 if v:IsA("TextLabel") and v.Visible and v.Text:find("%%") then
                     local currentVal = tonumber(v.Text:match("%d+"))
                     if currentVal then
                         isStealing = true
                         BarBackground.Visible = true
-                        BarFill.Size = UDim2.new(currentVal/100, 0, 1, 0) -- Enche a barra
+                        -- Sincroniza a barrinha visual com o roubo
+                        BarFill.Size = UDim2.new(currentVal/100, 0, 1, 0)
                         
+                        -- Se atingir os 91% (ou o que estiver no slider), pula!
                         if currentVal >= triggerPercent then
                             executeEscape()
-                            task.wait(1.5) -- Pausa para evitar spam
+                            task.wait(2) -- Evita múltiplos usos
                         end
                     end
                 end
